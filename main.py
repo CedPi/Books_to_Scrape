@@ -70,8 +70,6 @@ def save_to_csv(csv_header: list, data: list):
             writer.writerow(d)
 
 
-category = 'Fiction'
-books_urls = []
 page_contains_book = True
 page_number = 1
 while page_contains_book:
