@@ -15,6 +15,19 @@ ratings = {
     'Five': 5
 }
 
+header = [
+    'product_page_url',
+    'universal_product_code (upc)',
+    'title',
+    'price_including_tax',
+    'price_excluding_tax',
+    'number_available',
+    'product_description',
+    'category',
+    'review_rating',
+    'image_url'
+]
+
 data = []
 table = soup.find('table', class_='table-striped')
 tds = table.find_all('td')
@@ -40,6 +53,7 @@ data.append(ratings[soup.find('p', class_='star-rating').attrs['class'][1]])
 # image url
 data.append(home + soup.find(id='product_gallery').find('img').attrs['src'].replace('../../', '/'))
 
-for d in data:
-    print()
-    print(d)
+with open('one_product.csv', 'w', newline='') as file:
+    writer = csv.writer(file, delimiter=',')
+    writer.writerow(header)
+    writer.writerow(data)
