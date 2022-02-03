@@ -1,4 +1,5 @@
 import csv
+import re
 import requests
 from bs4 import BeautifulSoup
 
@@ -49,7 +50,8 @@ def scrap_one_product(home: str, url: str, ratings: list) -> list:
     # price excluding tax
     data.append(tds[3].string)
     # number available
-    data.append(tds[5].string)
+    number = re.findall(r"\d+", tds[5].string)
+    data.append(number[0])
     # product description
     data.append(soup.find(id='product_description').find_next('p').string)
     # category
