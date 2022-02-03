@@ -1,37 +1,36 @@
-import requests
 import csv
+import requests
 from bs4 import BeautifulSoup
 
 
-home = 'http://books.toscrape.com'
+HOME = 'http://books.toscrape.com'
+RATINGS = {
+    'One': 1,
+    'Two': 2,
+    'Three': 3,
+    'Four': 4,
+    'Five': 5
+}
+HEADER = [
+    'product_page_url',
+    'universal_product_code (upc)',
+    'title',
+    'price_including_tax',
+    'price_excluding_tax',
+    'number_available',
+    'product_description',
+    'category',
+    'review_rating',
+    'image_url'
+]
+data = []
 
 
-def scrap_one_product(home, url):
+def scrap_one_product(home: str, url: str, ratings: list, csv_header: list, data_to_fill: list):
+    """Récupération des infos d'une page"""
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
-    ratings = {
-        'One': 1,
-        'Two': 2,
-        'Three': 3,
-        'Four': 4,
-        'Five': 5
-    }
-
-    header = [
-        'product_page_url',
-        'universal_product_code (upc)',
-        'title',
-        'price_including_tax',
-        'price_excluding_tax',
-        'number_available',
-        'product_description',
-        'category',
-        'review_rating',
-        'image_url'
-    ]
-
-    data = []
     table = soup.find('table', class_='table-striped')
     tds = table.find_all('td')
 
@@ -58,7 +57,7 @@ def scrap_one_product(home, url):
 
     with open('one_product.csv', 'w', newline='') as file:
         writer = csv.writer(file, delimiter=',')
-        writer.writerow(header)
+        writer.writerow(csv_header)
         writer.writerow(data)
 
 
@@ -74,7 +73,7 @@ while page_contains_book:
     products = soup.find_all('article', class_='product_pod')
     
     for product in products:
-        product_url = home + product.find('a').attrs['href'].replace('../../../', '/catalogue/')
+        product_url = HOME + product.find('a').attrs['href'].replace('../../../', '/catalogue/')
         print(product_url)
 
     page_number += 1
