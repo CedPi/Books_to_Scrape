@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 
 
 HOME = 'http://books.toscrape.com'
+
 RATINGS = {
     'One': 1,
     'Two': 2,
@@ -11,6 +12,7 @@ RATINGS = {
     'Four': 4,
     'Five': 5
 }
+
 HEADER = [
     'product_page_url',
     'universal_product_code (upc)',
@@ -23,11 +25,13 @@ HEADER = [
     'review_rating',
     'image_url'
 ]
-data = []
+
+all_data = []
 
 
-def scrap_one_product(home: str, url: str, ratings: list, csv_header: list, data_to_fill: list):
-    """Récupération des infos d'une page"""
+def scrap_one_product(home: str, url: str, ratings: list) -> list:
+    """Récupération des infos d'un produit via url"""
+    data = []
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -55,10 +59,15 @@ def scrap_one_product(home: str, url: str, ratings: list, csv_header: list, data
     # image url
     data.append(home + soup.find(id='product_gallery').find('img').attrs['src'].replace('../../', '/'))
 
-    with open('one_product.csv', 'w', newline='') as file:
+    return data
+
+
+def save_to_csv(csv_header: list, data: list):
+    with open('one_category.csv', 'w', newline='') as file:
         writer = csv.writer(file, delimiter=',')
         writer.writerow(csv_header)
-        writer.writerow(data)
+        for d in data:
+            writer.writerow(d)
 
 
 category = 'Fiction'
@@ -74,6 +83,9 @@ while page_contains_book:
     
     for product in products:
         product_url = HOME + product.find('a').attrs['href'].replace('../../../', '/catalogue/')
-        print(product_url)
+        one_data = scrap_one_product(HOME, product_url, RATINGS)
+        all_data.append(one_data)
+
+    save_to_csv(HEADER, all_data)
 
     page_number += 1
