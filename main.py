@@ -71,10 +71,10 @@ def scrap_one_product(home: str, url: str, category: str, ratings: list) -> list
 
 
 def save_to_csv(csv_header: list, data: list, category: str):
-    categories_path = os.path.curdir + '/categories'
+    categories_path = os.path.curdir + '/extraction/csv/'
     if not os.path.isdir(categories_path):
-        os.mkdir('categories')
-    csv_path = 'categories/' + category + '.csv'
+        os.mkdir(categories_path)
+    csv_path = categories_path + category + '.csv'
 
     with open(csv_path, 'w', encoding='utf-8', newline='') as file:
         writer = csv.writer(file, delimiter=',')
@@ -132,7 +132,7 @@ for cat_name, cat_url in categories.items():
             product_url = HOME + product.find('a').attrs['href'].replace('../../../', '/catalogue/')
             one_data = scrap_one_product(HOME, product_url, cat_name, RATINGS)
             all_data.append(one_data)
-            download_image(one_data[-1], 'images/' + cat_name, one_data[1])
+            download_image(one_data[-1], 'extraction/images/' + cat_name, one_data[1])
 
         if number_of_products > 20:
             page_number += 1
