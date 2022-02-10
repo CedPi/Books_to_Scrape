@@ -2,6 +2,7 @@ import os
 import csv
 import re
 import requests
+import shutil
 from bs4 import BeautifulSoup
 
 
@@ -94,6 +95,19 @@ def get_categories(home_url: str) -> list:
     return categories
 
 
+def download_image(url: str, path:str, file_name: str):
+    response = requests.get(url, stream=True)
+    if response.status_code == 200:
+        extension = os.path.splitext(url)[1]
+        os.makedirs(path, exist_ok=True)
+        file_name = path + '/' + file_name + extension
+        with open(file_name, 'wb') as file:
+            shutil.copyfileobj(response.raw, file)
+        print("\t\t\t>>> L'image a bien été téléchargée")
+    else:
+        print("\t\t\tERREUR : L'image n'a pas pu être téléchargée.")
+
+
 
 # Main program
 categories = get_categories(HOME)
@@ -118,6 +132,7 @@ for cat_name, cat_url in categories.items():
             product_url = HOME + product.find('a').attrs['href'].replace('../../../', '/catalogue/')
             one_data = scrap_one_product(HOME, product_url, cat_name, RATINGS)
             all_data.append(one_data)
+            download_image(one_data[-1], 'images/' + cat_name, one_data[1])
 
         if number_of_products > 20:
             page_number += 1
