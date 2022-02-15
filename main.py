@@ -60,22 +60,24 @@ def save_to_csv(csv_header: list, data: list, category: str):
             writer.writerow(d)
 
 
-def get_categories(home_url: str) -> dict:
+def get_categories(home_url: str) -> tuple:
     categories = {}
     page = requests.get(home_url)
     if page.status_code != 200:
         print(f"Impossible de se connecter à {home_url}") 
     soup = BeautifulSoup(page.content, 'html.parser')
     side_categories = soup.find('div', class_='side_categories').find_all('a')
+    number_of_categories = 0
     for side_cat in side_categories:
         cat_name = side_cat.string.strip()
         if cat_name != 'Books':
             categories[cat_name] = side_cat.attrs['href'].strip()
+            number_of_categories += 1
 
-    return categories
+    return (categories, number_of_categories)
 
 
-def get_books_by_category(category_url: str) -> dict:
+def get_books_by_category(category_url: str) -> tuple:
     books = {}
     page = requests.get(category_url)
     if page.status_code != 200:
@@ -93,7 +95,7 @@ def get_books_by_category(category_url: str) -> dict:
             books.update(get_books_by_page(page_url))
             next_page += 1
 
-    return books
+    return (books, number_of_products)
 
 
 def get_books_by_page(page_url: str) -> dict:
@@ -123,17 +125,41 @@ def download_image(url: str, path:str, file_name: str):
         print("\t\t\tERREUR : L'image n'a pas pu être téléchargée.")
 
 
+def get_completion_status(current_category: int, total_categories: int, current_book: int, total_books: int) -> tuple:
+    return (current_category / total_categories * 100, current_book / total_books * 100)
+
+
+def display_status(completion_status: tuple, category_name: str, book_title: str):
+    max = 50
+    category_status = math.ceil(completion_status[0] / 2)
+    book_status = math.ceil(completion_status[1] / 2)
+    category_rest = max - category_status
+    book_rest = max - book_status
+    os.system('cls')
+    print(f"Progression totale : {math.ceil(completion_status[0])}%")
+    print("[" + category_status * "|" + category_rest * '-' + "]")
+    print(f"Catégorie : {category_name.upper()}")
+    print()
+    print(f"Progression catégorie : {math.ceil(completion_status[1])}%")
+    print("[" + book_status * "|" + book_rest * '-' + "]")
+    print(f"Livre : {book_title}")
+    print('\n\n')
+
+
 def main():
     categories = get_categories(HOME)
-    for cat_name, cat_url in categories.items():
-        print('\n' + cat_name.upper())
+    number_of_categories = categories[1]
+    current_category = 1
+    for cat_name, cat_url in categories[0].items():
         all_data = []
         book_number = 1
         working_url = HOME + '/' + cat_url
 
         books = get_books_by_category(working_url)
-        for url, title in books.items():
-            print(f"\t[#{str(book_number)}] {title}")
+        for url, title in books[0].items():
+            number_of_books = books[1]
+            completion = get_completion_status(current_category, number_of_categories, book_number, number_of_books)
+            display_status(completion, cat_name, title)
 
             page = requests.get(working_url)
             if page.status_code != 200:
@@ -146,6 +172,7 @@ def main():
             book_number += 1
 
         save_to_csv(list(one_data.keys()), all_data, cat_name)
+        current_category += 1
 
 
 if __name__ == "__main__":
